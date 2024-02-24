@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat with GPT</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Chat with GPT</h1>
+    <textarea id="chatbox" cols="100" rows="10" readonly></textarea><br>
+    <input type="text" id="user_input" size="100">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        function sendMessage() {
+            var userInput = document.getElementById('user_input').value;
+            $.ajax({
+                url: '/execute',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ input_text: userInput }),
+                success: function(response) {
+                    var chatbox = document.getElementById('chatbox');
+                    chatbox.value += "You: " + userInput + "\nGPT: " + response.result + "\n";
+
+                    // 处理 generate_response 返回的数据
+                    if (response.data) {
+                        for (var i = 0; i < response.data.length; i++) {
+                            var dfName = response.data[i].name;
+                            var dfData = response.data[i].data;
+                            chatbox.value += dfName + ":\n";
+                            for (var j = 0; j < dfData.length; j++) {
+                                chatbox.value += JSON.stringify(dfData[j]) + "\n";
+                            }
+                        }
+                    }
+                }
+            });
+            document.getElementById('user_input').value = '';
+        }
+    </script>
+</body>
+</html>

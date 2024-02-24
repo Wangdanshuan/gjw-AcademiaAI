@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat with ScholarGPT</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Chat with ScholarGPT</h1>
+    <p>If you have multiple questions, separate them using //, for example: Question1 // Question2</p> <!-- 添加这行 -->
+    <textarea id="chatbox" cols="100" rows="10" readonly></textarea><br>
+    <input type="text" id="user_input" size="100">
+    <button onclick="sendMessage()">Send</button>
+    <br><br>
+    <div id="file_links">
+        <!-- 下载链接将显示在这里 -->
+    </div>
+
+    <script>
+        function sendMessage() {
+            var userInput = document.getElementById('user_input').value;
+            var chatbox = document.getElementById('chatbox');
+
+            // 显示 "正在处理内容"
+            chatbox.value += "You: " + userInput + "\nGPT: 正在处理内容...\n";
+
+            $.ajax({
+                url: '/execute',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ input_text: userInput }),
+                success: function(response) {
+                    // 替换 "正在处理内容" 为 GPT 的实际响应
+                    chatbox.value = chatbox.value.replace("GPT: 正在处理内容...", "GPT: " + response.result + "\n");
+
+                    // 添加下载链接
+                    if (response.download_links && response.download_links.length > 0) {
+                        var fileLinksDiv = document.getElementById('file_links');
+                        fileLinksDiv.innerHTML = ''; // 清除之前的链接
+                        response.download_links.forEach(link => {
+                            // 创建下载链接
+                            var a = document.createElement('a');
+                            a.href = link;
+                            a.download = link.split('/').pop(); // 获取文件名
+                            a.textContent = `Download ${a.download}`;
+                            // 将链接添加到页面上
+                            fileLinksDiv.appendChild(a);
+
+                            // 添加换行元素
+                            var br = document.createElement('br');
+                            fileLinksDiv.appendChild(br);
+                        });
+                    }
+                }
+            });
+            document.getElementById('user_input').value = '';
+        }
+    </script>
+</body>
+</html>

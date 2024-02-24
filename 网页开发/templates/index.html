@@ -1,0 +1,27 @@
+<script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    socket.on('connect', function() {
+        console.log('Connected to server');
+    });
+
+    socket.on('algorithm_output', function(data) {
+        var chatbox = document.getElementById('chatbox');
+        chatbox.value += "Algorithm: " + data.output + "\n";
+    });
+
+    socket.on('algorithm_running', function(data) {
+        alert(data.message);
+    });
+
+    // 添加一个定时轮询函数
+    setInterval(function() {
+        socket.emit('check_execution_status');
+    }, 3000);  // 每隔3秒轮询一次
+
+    function sendMessage() {
+        var userInput = document.getElementById('user_input').value;
+        socket.emit('send_message', { input_text: userInput });
+        document.getElementById('user_input').value = '';
+    }
+</script>
